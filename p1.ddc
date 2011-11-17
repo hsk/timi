@@ -1,0 +1,8 @@
+#!/Users/sakurai/git/timi8/ddc 
+
+main=fun() {
+  printInt(add(1,2,3))
+}
+
+add=fun(a,b,c) return a+b+c
+
