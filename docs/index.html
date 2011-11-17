@@ -1,0 +1,1363 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
+	<META NAME="CREATED" CONTENT="20110919;18110200">
+	<META NAME="CHANGED" CONTENT="20111003;9341500">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 2cm }
+		TD P { margin-bottom: 0.21cm }
+		TD P.cjk { font-family: "ヒラギノ明朝 Pro W3"; font-weight: normal }
+		H1 { margin-bottom: 0.21cm; border: 1.00pt solid #000000; padding: 0.05cm; color: #000000 }
+		H1.western { font-family: "Arial", sans-serif; font-size: 16pt }
+		H1.cjk { font-family: "ヒラギノ角ゴ ProN W3"; font-size: 16pt }
+		H1.ctl { font-size: 16pt }
+		P { margin-bottom: 0.21cm }
+		P.cjk { font-weight: normal }
+		H2 { margin-bottom: 0.21cm; border: 1px solid #0047ff; padding: 0.05cm }
+		H2.western { font-family: "Arial", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-family: "ヒラギノ角ゴ ProN W3"; font-size: 14pt; font-style: italic }
+		H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
+		H3 { border: 1px solid #00b8ff; padding: 0.05cm }
+		H3.ctl { font-family: "Arial Unicode MS" }
+		PRE { color: #ffffff }
+		PRE.western { font-family: monospace }
+		PRE.cjk { font-family: monospace }
+		PRE.ctl { font-family: "Courier New", monospace }
+		H4 { border: 1px solid #83caff; padding: 0.05cm }
+		H4.ctl { font-family: "Arial Unicode MS" }
+		H5 { border: 1px solid #ccffff; padding: 0.05cm }
+		H5.ctl { font-family: "Arial Unicode MS" }
+		CODE.western { font-family: monospace; font-size: 10pt }
+		CODE.cjk { font-family: monospace; font-size: 10pt }
+		CODE.ctl { font-family: "Courier New", monospace }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="ja-JP" DIR="LTR">
+<H1 CLASS="cjk" STYLE="background: transparent">アセンブラを学びながら<FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>で作るコンパイラバックエンド入門</H1>
+<P CLASS="cjk" ALIGN=CENTER STYLE="background: transparent">著者　櫻井　洋志</P>
+<H2 CLASS="cjk"><A NAME="1. はじめに|outline"></A><A NAME="1. はじめに|outline"></A>
+<FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">1.
+</SPAN></FONT></SPAN></FONT>はじめに</H2>
+<P CLASS="cjk">　昨今、プログラミング言語の作り方を解説した書籍は沢山発行されています。しかしながらコンパイラのバックエンド<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">(</SPAN></FONT></SPAN></FONT>アセンブラのコード出力部分周りのこと<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">)</SPAN></FONT></SPAN></FONT>を記述した本は少ないように思います。「難しかったり実装が大きすぎて自分で作ることはできなさそう」とあきらめている方も多いのではないでしょうか？自分もそんな一人でした。「バックエンド周りの事を分かりやすく書いた入門書があればいいのになぁ」と思って探してもこれ最高！と思える物は見つかりませんでした。「ないなら自分が書こう」という事で、本書を書く事にしました。本書はコンパイラのバックエンドを作るための入門書です。簡単なコンパイラを<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">C</SPAN></FONT></SPAN></FONT>言語が出力したアセンブラのコードを頼りに作って行きます。何もないところから徐々に発展させて行くので、気楽に楽しくコンパイラのバックエンドを学習できるはずです。</P>
+<H2 CLASS="cjk"><A NAME="2. 目次|outline"></A><A NAME="2. 目次|outline"></A>
+<FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">2.
+</SPAN></FONT></SPAN></FONT>目次</H2>
+<P CLASS="cjk" STYLE="margin-left: 2cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><A HREF="#1. はじめに|outline"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">1.</SPAN></FONT></A></SPAN></FONT><A HREF="#1. はじめに|outline">はじめに</A></P>
+<P CLASS="cjk" STYLE="margin-left: 2cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><A HREF="#2. 目次|outline"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">2.
+</SPAN></FONT></A></SPAN></FONT><A HREF="#2. 目次|outline">目次</A></P>
+<P CLASS="cjk" STYLE="margin-left: 2cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><A HREF="#3. 対象とする読者|outline"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">3.
+</SPAN></FONT></A></SPAN></FONT><A HREF="#3. 対象とする読者|outline">対象とする読者</A></P>
+<P CLASS="cjk" STYLE="margin-left: 2cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">4.
+</SPAN></FONT></SPAN></FONT>開発環境</P>
+<P CLASS="cjk" STYLE="margin-left: 2cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.
+</SPAN></FONT><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>でアセンブラを出力してみよう</P>
+<H2 CLASS="cjk"><A NAME="3. 対象とする読者|outline"></A><A NAME="3. 対象とする読者|outline"></A>
+<FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">3.
+</SPAN></FONT></SPAN></FONT>対象とする読者</H2>
+<P CLASS="cjk">　本書が対象とする読者を以下に示します。</P>
+<UL>
+	<LI><P CLASS="cjk"><SPAN STYLE="background: transparent">ネイティブコンパイラを作ってみたい方</SPAN></P>
+	<LI><P CLASS="cjk"><SPAN STYLE="background: transparent">ネイティブコンパイラを関数型言語を使って作ってみたい方</SPAN></P>
+	<LI><P CLASS="cjk"><SPAN STYLE="background: transparent">ネイティブコンパイラの中身に興味のある方</SPAN></P>
+	<LI><P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="background: transparent">x86_64</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="background: transparent">に興味のある方</SPAN></P>
+	<LI><P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="background: transparent">Scala</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="background: transparent">を具体的な例を見ながら学習したい方</SPAN></P>
+	<LI><P CLASS="cjk"><SPAN STYLE="background: transparent">関数型言語を使って何か作ってみたい方</SPAN></P>
+</UL>
+<P CLASS="cjk">　本書では関数型言語 <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala
+</SPAN></FONT></SPAN></FONT>を用いてネイティブコンパイラのバックエンドを作成して行きます。従ってある程度
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala
+</SPAN></FONT></SPAN></FONT>について知識があるほうが読みやすいでしょう。しかし他の関数型言語に比べて<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala
+</SPAN></FONT></SPAN></FONT>は一般的なプログラミング言語に近い構文なので
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala
+</SPAN></FONT></SPAN></FONT>をご存知ない方でも理解しやすいのではないかと思います。</P>
+<H2 CLASS="cjk"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">4.
+</SPAN></FONT></SPAN></FONT>開発環境</H2>
+<P CLASS="cjk" ALIGN=LEFT>　本書では開発環境として<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">x86_64
+Mac OSX </SPAN></FONT></SPAN></FONT>上の <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala
+</SPAN></FONT></SPAN></FONT>と <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC
+</SPAN></FONT></SPAN></FONT>を用いています。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac
+</SPAN></FONT></SPAN></FONT>はあまり一般的ではないかもしれませんが、それでも
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac
+</SPAN></FONT></SPAN></FONT>を対象にした理由はいくつかあります。一つ目の理由は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>のコンパイラを作る方法を書いている物が欲しかった事があります。今から<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">32bit</SPAN></FONT></SPAN></FONT>のコンパイラを作り始めたのでは時代に取り残されてしまうかもしれません。だけど<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT>のコンパイラってどうやって作ったらいいのか分からないので困っていたのです。今<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac</SPAN></FONT></SPAN></FONT>を買えば標準的に<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>のコンパイラがついて来ます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Windows</SPAN></FONT></SPAN></FONT>を対象にするとどうしても、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">32bit</SPAN></FONT></SPAN></FONT>のほうがよくなってしまいます。それでは、将来が不安です（笑）。だから<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">CPU</SPAN></FONT>を扱うなら<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac</SPAN></FONT>がいいのではないかと思います。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac</SPAN></FONT>なら<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">OS
+</SPAN></FONT></SPAN></FONT>が <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">UNIX
+</SPAN></FONT></SPAN></FONT>ベース <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">(free
+BSD </SPAN></FONT></SPAN></FONT>ベース<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">)</SPAN></FONT></SPAN></FONT>なのでコマンドライン上の開発も楽です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">xcode</SPAN></FONT></SPAN></FONT>をインストールするだけで
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC
+</SPAN></FONT></SPAN></FONT>がインストールされます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">iPhone,
+iPad </SPAN></FONT></SPAN></FONT>等のアプリケーションも作成も出来ます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">arm</SPAN></FONT></SPAN></FONT>のコンパイルも出来る訳です。そしてなにより筆者が
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac
+</SPAN></FONT></SPAN></FONT>を購入したからでもあります。メインのマシンを<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac</SPAN></FONT></SPAN></FONT>にしたので、
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac
+</SPAN></FONT></SPAN></FONT>で開発するのが楽なのです。購入した理由は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">UI</SPAN></FONT></SPAN></FONT>がカッコいいとか、文字が奇麗だし、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">IT</SPAN></FONT></SPAN></FONT>系の勉強会に行くとみんな
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Keynote</SPAN></FONT></SPAN></FONT>でかっこ良くプレゼンしてるし、いい事ずくめなので買いました。</P>
+<CENTER>
+	<TABLE WIDTH=54% BORDER=2 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=132*>
+		<COL WIDTH=124*>
+		<TR VALIGN=TOP>
+			<TD WIDTH=52% BGCOLOR="#000080">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="font-style: normal; text-decoration: none">
+				<FONT COLOR="#ffffff"><FONT SIZE=3><B>環境</B></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=48% BGCOLOR="#000080">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="font-style: normal; text-decoration: none">
+				<FONT COLOR="#ffffff"><FONT SIZE=3><B>名称</B></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=52% BGCOLOR="#4d4d4d">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="font-style: normal; text-decoration: none">
+				<FONT COLOR="#ffffff"><FONT SIZE=3><B>ハードウェア</B></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=48% BGCOLOR="#cccccc">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">Macintosh</SPAN></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=52% BGCOLOR="#4d4d4d">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">OS</SPAN></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=48% BGCOLOR="#cccccc">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">Mac
+				OSX</SPAN></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=52% BGCOLOR="#4d4d4d">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">CPU</SPAN></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=48% BGCOLOR="#cccccc">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">x86_64</SPAN></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=52% BGCOLOR="#4d4d4d">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="font-style: normal; text-decoration: none">
+				<FONT COLOR="#ffffff"><FONT SIZE=3><B>言語</B></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=48% BGCOLOR="#cccccc">
+				<P CLASS="cjk" ALIGN=LEFT STYLE="text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">Scala,
+				C</SPAN></SPAN></SPAN></FONT></FONT></SPAN></FONT><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">言語</SPAN></SPAN></FONT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">,
+				GCC,</SPAN></SPAN></SPAN></FONT></FONT></SPAN></FONT><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">アセンブラ</SPAN></SPAN></FONT></FONT></P>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER>表 <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">4.1
+</SPAN></FONT></SPAN></FONT>開発環境</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">4.1.
+Scala </SPAN></FONT></SPAN></FONT>のインストール</H3>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>でググって、インストールしてください。多分うまくインストールできます。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">4.2.
+GCC </SPAN></FONT></SPAN></FONT>のインストール</H3>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Mac
+OSX GCC </SPAN></FONT></SPAN></FONT>でググってインストールしてください。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Xcode
+</SPAN></FONT></SPAN></FONT>とか、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">mac
+ports </SPAN></FONT></SPAN></FONT>でググってもいいかもしれません。</P>
+<P CLASS="cjk">環境は好みがあるので好みの環境で<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT></SPAN></FONT>が使えるように準備してください。</P>
+<H2 CLASS="cjk"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">5.
+Scala</SPAN></FONT></SPAN></FONT>でアセンブラを出力してみよう</H2>
+<P CLASS="cjk">　まず手始めに<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>とアセンブラに慣れて行きましょう。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5</SPAN></FONT></SPAN></FONT>章では<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">C</SPAN></FONT></SPAN></FONT>のソースコードをアセンブラにコンパイルしてみて、アセンブラのソースを眺めます。そして<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>でそのアセンブラをアセンブルして実行してみます。このくらいなら誰でも出来そうでしょ？出来そうだけど、やった事のない人は多いはずです。そしてやってみると、なんか簡単な気がしてくると思います。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.
+C</SPAN></FONT></SPAN></FONT>言語のソースをコンパイルしてアセンブラを出力してみよう</H3>
+<P CLASS="cjk">　ではさっそく、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">C</SPAN></FONT></SPAN></FONT>言語のプログラムを書きましょう。</P>
+<DIV ID="セクション1" DIR="LTR" STYLE="background: #0000ff">
+	<PRE CLASS="cjk"><SPAN LANG="en-US">#include &lt;stdio.h&gt;</SPAN>
+<SPAN LANG="en-US">void printInt(int a) {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">printf(“%d\n”,a);</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN>
+<SPAN LANG="en-US">void main() {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">printInt(3);</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+</DIV>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5</SPAN></FONT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">.1.
+test.c</SPAN></SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">test.c</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">というファイルを作って、ソースコード</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">4.1.</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を入力してください。</SPAN></P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm; font-weight: normal">コマンドラインから、次のように実行します。</P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P CLASS="cjk" STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><CODE CLASS="western"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="background: transparent">$
+gcc -m64 -S test.c</SPAN></SPAN></FONT></FONT></CODE></SPAN></FONT></P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">すると、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">test.s</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">というファイルが生成されているはずです。この</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">test.s</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を開くと次のように出力されていると思います。</SPAN></P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk">        <SPAN LANG="en-US"><SPAN LANG="en-US">.cstring</SPAN></SPAN>
+<SPAN LANG="en-US">LC0:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.ascii &quot;%d\12\0&quot;</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.text</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _printInt</SPAN>
+<SPAN LANG="en-US">_printInt:</SPAN>
+<SPAN LANG="en-US">LFB3:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+<SPAN LANG="en-US">LCFI0:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+<SPAN LANG="en-US">LCFI1:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">subq    $16, %rsp</SPAN></SPAN>
+<SPAN LANG="en-US">LCFI2:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %esi</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leaq    LC0(%rip), %rdi</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    $0, %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">call    _printf</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">LFE3:</SPAN>
+<SPAN LANG="en-US">.globl _main</SPAN>
+<SPAN LANG="en-US">_main:</SPAN>
+<SPAN LANG="en-US">LFB4:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+<SPAN LANG="en-US">LCFI3:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+<SPAN LANG="en-US">LCFI4:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">subq    $16, %rsp</SPAN></SPAN>
+<SPAN LANG="en-US">LCFI5:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    $333, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %edi</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">call    _printInt</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">LFE4:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.section __TEXT,__eh_frame,coalesced,no_toc+strip_static_syms+live_support</SPAN></SPAN>
+<SPAN LANG="en-US">EH_frame1:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.set L$set$0,LECIE1-LSCIE1</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.long L$set$0</SPAN></SPAN>
+<SPAN LANG="en-US">LSCIE1:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.long   0x0</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.byte   0x1</SPAN></SPAN>
+<SPAN LANG="en-US">:</SPAN>
+<SPAN LANG="en-US">:</SPAN>
+<SPAN LANG="en-US">:</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">5.2.
+test.s</SPAN></SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm; font-weight: normal">このソースにはエンハンスドフレーム情報という、スタック内にどんな情報が入っているかの情報が含まれています。この情報はデバッグ時や例外発生時に用いられますが、今は不要ですので消してしまいます。修正後のソースコードは以下のようになります。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk">        <SPAN LANG="en-US"><SPAN LANG="en-US">.cstring</SPAN></SPAN>
+<SPAN LANG="en-US">LC0:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.ascii &quot;%d\12\0&quot;</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">.text</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _printInt</SPAN>
+<SPAN LANG="en-US">_printInt:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">subq    $16, %rsp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %esi</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leaq    LC0(%rip), %rdi</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    $0, %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">call    _printf</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _main</SPAN>
+<SPAN LANG="en-US">_main:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">subq    $16, %rsp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    $333, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %edi</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">call    _printInt</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.3.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">修正後の</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test.s</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm">だいぶ行数が減りましたね。アセンブラのソースコードは以下の３つから構成されています。</P>
+<H4 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.1</SPAN></FONT></SPAN></FONT>ディレクティブ</H4>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">&quot;<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">.&quot;</SPAN></FONT></SPAN></FONT>から始まるアセンブラに対する命令をディレクティブと呼びます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">.cstring</SPAN></FONT></SPAN></FONT>はテキストデータを含むセクションの開始を表します。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">.ascii</SPAN></FONT></SPAN></FONT>は文字列定数を表します。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">.text</SPAN></FONT></SPAN></FONT>はプログラムコードの開始を表し、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">.globl</SPAN></FONT></SPAN></FONT>はラベル名がグローバルに公開される事を表します。このようにディレクティブは用います。</P>
+<H4 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.2.
+</SPAN></FONT></SPAN></FONT>ラベル</H4>
+<P CLASS="cjk">　アドレスに名前を付けた物をラベルと呼びます。識別子
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">&quot;<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">:&quot;
+</SPAN></FONT></SPAN></FONT>と記述します。実際のマシン語ではアドレスは数値で表されますが、プログラム編集時には実際のアドレスを意識しなくても良いように名前をつけて扱うのです。ラベルは関数のアドレスや、ジャンプ命令のとび先、静的なデータの値等につけます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">.globl</SPAN></FONT></SPAN></FONT>を使う事で、ラベルを外部に公開する事が出来ます。</P>
+<H4 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.
+</SPAN></FONT></SPAN></FONT>インストラクション</H4>
+<P CLASS="cjk">　アセンブラの最も重要な、マシン語を表す物がインストラクションです。インストラクションはニーモニックとソース、ディスティネーションと呼ばれるパラメータから構成されます。パラメータがないインストラクションも存在します。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT></SPAN></FONT>のアセンブラはディスティネーションを先にソースを後に書く<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">AT&amp;T</SPAN></FONT>方式で記述します。慣れないと不自然に感じるのですが、そういう方は書き慣れてしまうと良いです。沢山コードを書いたり読んだりしてみれば、慣れる事ができるはずです。ソースコード<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.3</SPAN></FONT>で用いられている各インストラクションの意味は次の通りです。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.1.
+pushq</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">pushq
+reg
+</SPAN></FONT></SPAN></FONT>はレジスタの値をスタックに積む命令です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">pushq</SPAN></FONT></SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">q</SPAN></FONT></SPAN></FONT>は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>を表します。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">pushq</SPAN></FONT></SPAN></FONT>に対して<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">popq</SPAN></FONT></SPAN></FONT>がレジスタから値を取り出す命令です。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.2.
+movq</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movq
+a, b movq</SPAN></FONT></SPAN></FONT>は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>の転送命令です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a</SPAN></FONT></SPAN></FONT>から<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">b</SPAN></FONT></SPAN></FONT>へ値を転送します。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.3.
+subq</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">subq
+a, b subq </SPAN></FONT></SPAN></FONT>は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>の引き算をする命令です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">b
+</SPAN></FONT></SPAN></FONT>から <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a</SPAN></FONT></SPAN></FONT>を引き<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">b</SPAN></FONT></SPAN></FONT>に値を設定します。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.4.
+movl</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+a,b movl</SPAN></FONT></SPAN></FONT>は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">32bit</SPAN></FONT></SPAN></FONT>の転送命令です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a</SPAN></FONT></SPAN></FONT>から<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">b</SPAN></FONT></SPAN></FONT>へ値を転送します。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.5.
+leaq</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">leaq</SPAN></FONT></SPAN></FONT>はラベルの値をレジスタに設定するのに用いられています。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">q</SPAN></FONT></SPAN></FONT>がついているので<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>の命令ですね。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.6.
+call</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">call
+a </SPAN></FONT></SPAN></FONT>は関数呼び出しの命令です。ラベル<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a</SPAN></FONT></SPAN></FONT>の関数を呼び出します。具体的な動作は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">call</SPAN></FONT></SPAN></FONT>の次のアドレスをスタックに積んでラベル<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a</SPAN></FONT></SPAN></FONT>を実行します。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.7.
+leave</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">leave</SPAN></FONT></SPAN></FONT>は、関数終了処理の命令です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%rbp
+</SPAN></FONT></SPAN></FONT>を <FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%rsp</SPAN></FONT></SPAN></FONT>に移動し、スタックから<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%rbp</SPAN></FONT></SPAN></FONT>に値を取り出します。</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.3.8.
+ret</SPAN></FONT></H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">ret</SPAN></FONT></SPAN></FONT>は関数から戻る為の命令です。スタックからアドレスを取り出し、取り出したアドレスにジャンプします。</P>
+<P CLASS="cjk">　一つ一つのインストラクションで出来る事は限られています。しかしこれらの命令を組み合わせることで複雑なプログラムを記述出来るのです。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">x86_64</SPAN></FONT></SPAN></FONT>のインストラクションは<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">x86</SPAN></FONT></SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">32bit</SPAN></FONT></SPAN></FONT>の命令に<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">64bit</SPAN></FONT></SPAN></FONT>の命令を追加したような構造になっているので、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">x86</SPAN></FONT></SPAN></FONT>の命令セットを知っている人は分かりやすいのではないでしょうか？</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.4.
+</SPAN></FONT></SPAN></FONT>レジスタ</H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%eax,
+%ebx, %ecx, %edx, %edi, %esi, %rbp, %r8d, %r9d, %rsp</SPAN></FONT></SPAN></FONT></P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.5.
+</SPAN></FONT></SPAN></FONT>インデックス参照</H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">-4(%rbp)</SPAN></FONT></SPAN></FONT>等</P>
+<H5 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.1.6.
+</SPAN></FONT></SPAN></FONT>数値</H5>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$</SPAN></FONT></SPAN></FONT>から始まる数値</P>
+<P CLASS="cjk"><BR><BR>
+</P>
+<P CLASS="cjk">このように<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT></SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">-S</SPAN></FONT></SPAN></FONT>オプションを使うことで、多くの事を学ぶ事が出来ます。例えば、</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">main</SPAN></FONT></SPAN></FONT>関数内の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$333, -4(%rbp)</SPAN></FONT></SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$333</SPAN></FONT></SPAN></FONT>を<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$123</SPAN></FONT></SPAN></FONT>に書き換えて、</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+gcc test.s</SPAN></FONT></P>
+<P CLASS="cjk">としてコンパイルして</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$./a.out</SPAN></FONT></SPAN></FONT>と実行してみましょう。</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">123</SPAN></FONT></SPAN></FONT>と表示されるはずです。</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$100, %eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">addl
+$50, %eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+%eax, -4(%rbp)</SPAN></FONT></P>
+<P CLASS="cjk">と書き換えれば、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">100+50=150</SPAN></FONT></SPAN></FONT>が表示されるはずですのでやってみてください。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.2.
+Scala</SPAN></FONT></SPAN></FONT>でアセンブラを出力してみよう</H3>
+<P CLASS="cjk">さて、アセンブラの中身が何となく分かったところで、とにかく、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>からアセンブラのコードを出力してみましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">object asmout {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\t.cstring&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;LC0:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\t.ascii \&quot;%d\\12\\0\&quot;&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\t.text&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;.globl _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;_printInt:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovl    %edi, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovl    -4(%rbp), %esi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tleaq    LC0(%rip), %rdi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovl    $0, %eax&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tcall    _printf&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tret&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;.globl _main&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;_main:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovl    $333, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tmovl    -4(%rbp), %edi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tcall    _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;\tret&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.4.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">アセンブラを出力するプログラム</SPAN></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: normal">
+このプログラムはただ<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">println</SPAN></FONT>を使ってアセンブラのプログラムを出力しているだけです。難しい事は何もしていません。</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scalac asmout.scala</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scala asmout</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">と実行すれば、標準出力にアセンブラのコードが出力されるはずです。</SPAN></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scala asmout &gt; e.s</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+gcc e.s -m64 -o e</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+./e</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">333</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">とパイプを使ってファイルに保存して</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT><SPAN STYLE="font-weight: normal">でコンパイルして実行出来れば成功です。ばかばかしいかもしれませんが、ちゃんとアセンブラを出力して実行出来ました。実行出来たのです。すばらしい！！</SPAN></P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.3.
+Scala </SPAN></FONT></SPAN></FONT>でアセンブラをファイルに出力してみよう</H3>
+<P CLASS="cjk">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.2</SPAN></FONT>節では、アセンブラを標準出力に出力しました。次は、パイプを使わずにファイルに出力できるようにしてみましょう。ファイルに直接出力する機能は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">-S</SPAN></FONT>オプションを使ったときと同等の機能です。よりコンパイラらしくなるのでがんばりましょう。</P>
+<P CLASS="cjk"><BR><BR>
+</P>
+<P CLASS="cjk">では<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm.scala</SPAN></FONT></SPAN></FONT>というファイルを作って、出力関数を作りましょう。</P>
+<P CLASS="cjk">先ほどのプログラムは１つのクラスでしたが、徐々にプログラムは増えていきます。パッケージを作ってクラスファイルはディレクトリの中に出力するようにしてしまいましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+
+<SPAN LANG="en-US">import java.io._</SPAN>
+<SPAN LANG="en-US">object asm {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var p:PrintWriter = null</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def open(file:String) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">p = new PrintWriter(new BufferedWriter(new FileWriter(file)))</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(s:String) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">p.println(s)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def close() {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">p.close()</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(argv:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.open(&quot;a.txt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;test&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.close()</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER>ソースコード<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.5.
+asm.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>このプログラムのメイン関数ではテスト的に<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a.txt</SPAN></FONT>に<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test</SPAN></FONT>と出力しています。</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scala ddc.asm</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>とすることで実行出来ますので実行してみましょう。</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+ls</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>とすると<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a.txt</SPAN></FONT></SPAN></FONT>というファイルが出来ているのを確認出来るはずですので確認してみましょう。</P>
+<P CLASS="cjk" ALIGN=LEFT>確認出来たでしょうか？では次に</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT COLOR="#ffffff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+vi a.txt</SPAN></FONT></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>として<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a.txt</SPAN></FONT></SPAN></FONT>に<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test</SPAN></FONT></SPAN></FONT>と出力されている事を確認しましょう。うまく行っているはずですが、うまく行っているでしょうか？うまく行っていない場合はどこかにバグがあるはずです。注意深くバグを探してつぶしてください。きっとどこかにバグが潜んでいるはずです。バグを見つけてバグをつぶしてしまってください。</P>
+<P CLASS="cjk" ALIGN=LEFT>さぁ、これで<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm</SPAN></FONT></SPAN></FONT>関数は出来ました。</P>
+<P CLASS="cjk" ALIGN=LEFT>次にソース<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.3.<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test.scala</SPAN></FONT></SPAN></FONT>を開いて書き換えて行きましょう。</P>
+<P CLASS="cjk" ALIGN=LEFT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">package
+ddc</SPAN></FONT></SPAN></FONT>として<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">println</SPAN></FONT></SPAN></FONT>を<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm</SPAN></FONT></SPAN></FONT>に書き換えます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm.open(“test2.s”)</SPAN></FONT></SPAN></FONT>と<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm.close()</SPAN></FONT></SPAN></FONT>を書き加えます。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object asmout {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.open(&quot;test.s&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.cstring&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;LC0:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.ascii \&quot;%d\\12\\0\&quot;&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.text&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;_printInt:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    %edi, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    -4(%rbp), %esi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleaq    LC0(%rip), %rdi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    $0, %eax&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tcall    _printf&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl _main&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;_main:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    $333, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    -4(%rbp), %edi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tcall    _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.close()</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.6.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">アセンブラを出力するプログラム
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test2.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scalac test2.scala asm.scala</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>としてコンパイルして</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scala test2</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>とすれば、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test2.s</SPAN></FONT></SPAN></FONT>が出力されます。</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+gcc test2.s -o test2</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+./test2</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">333</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>と出力されれば成功です。見事、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">scala</SPAN></FONT></SPAN></FONT>でファイルを出力する事が出来ました。また、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">println</SPAN></FONT></SPAN></FONT>を<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm</SPAN></FONT></SPAN></FONT>に書き換えた事でアセンブラを出力してるぞって感じになりました。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.4.
+Scala </SPAN></FONT></SPAN></FONT>で<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT></SPAN></FONT>を使ってアセンブルしてみよう</H3>
+<P CLASS="cjk">　まだ、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">gcc</SPAN></FONT></SPAN></FONT>のコマンドをたたいているのでコンパイラっぽくありません。</P>
+<P CLASS="cjk">次は、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>で外部プロセスである<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">gcc</SPAN></FONT></SPAN></FONT>を起動出来るようにして<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>内でコンパイルしてみましょう。</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Scala</SPAN></FONT></SPAN></FONT>には外部プロセスを実行する関数はありません。ですが<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Java</SPAN></FONT></SPAN></FONT>の<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">API</SPAN></FONT>を直接呼び出す事が出来ます。いざとなれば<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">API</SPAN></FONT>を直接呼べばよいのです。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Java</SPAN></FONT>では<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">System.Runtime</SPAN></FONT></SPAN></FONT>の中にある<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">exec</SPAN></FONT></SPAN></FONT>メソッドを使えば外部プロセスを起動することができます。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">exec</SPAN></FONT>を使って<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">GCC</SPAN></FONT></SPAN></FONT>を呼び出せばよいわけです。簡単にするため<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">exec</SPAN></FONT></SPAN></FONT>関数を作って使うことにしましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">import java.io._</SPAN>
+<SPAN LANG="en-US">object exec {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(cmd:String):Int = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val p = Runtime.getRuntime().exec(cmd)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">print(readAll(p.getInputStream()))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">print(readAll(p.getErrorStream()))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">p.waitFor()</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def readAll(p:InputStream):String = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">def f(s:String, i:BufferedReader):String = {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">i.readLine() match {</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">case null =&gt; s</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">case a =&gt;  f(s+a+&quot;\n&quot;, i)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">f(&quot;&quot;,new BufferedReader(new InputStreamReader(p)))</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(argv:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(exec(&quot;ls&quot;))</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.7.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">プロセスを実行するプログラム
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">exec.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: normal">
+さて、このプログラムを組み込んでみましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object asmout {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.open(&quot;test3.s&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.cstring&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;LC0:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.ascii \&quot;%d\\12\\0\&quot;&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.text&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;_printInt:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    %edi, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    -4(%rbp), %esi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleaq    LC0(%rip), %rdi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    $0, %eax&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tcall    _printf&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl _main&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;_main:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    $333, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    -4(%rbp), %edi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tcall    _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.close()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exec(&quot;gcc -m64 -o test3 test3.s&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">5.8.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">アセンブラを出力するプログラム
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test2.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scalac test3.scala</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>としてコンパイルして</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+scala test2</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT>で、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test2</SPAN></FONT></SPAN></FONT>ファイルが出力されます。</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+./test2</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="background: #0000ff"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">333</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">見事、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">scala</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">で作ったプログラムを実行するだけで実行ファイルを出力する事が出来ました。まだ同じプログラムを出力する事しか出来ません。ですが、コンパイラを作る事が出来た訳です。もしもあなたが、ネイティブコンパイラを作った事がなかったのであれば、ネイティブコンパイラを作った初めての経験をしたことになりますね。同じ動作をする事しか出来ないけどね。それでも立派なコンパイラを作れたのです。誇りに思ってください。</SPAN></P>
+<H2 CLASS="cjk"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">6.
+</SPAN></FONT></SPAN></FONT>四則演算を出来るようにしよう</H2>
+<P CLASS="cjk">　さぁ、次はがんばって四則演算が出来るコンパイラを作りましょう！</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.1.
+</SPAN></FONT></SPAN></FONT>四則演算のアセンブラを調べよう</H3>
+<P CLASS="cjk">と、その前に、どうやったら四則演算をアセンブラで出来るのか調べてみましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">#include &lt;stdio.h&gt;</SPAN>
+<SPAN LANG="en-US">int add(int a, int b) { return a + b; }</SPAN>
+<SPAN LANG="en-US">int sub(int a, int b) { return a – b; }</SPAN>
+<SPAN LANG="en-US">int mul(int a, int b) { return a * b; }</SPAN>
+<SPAN LANG="en-US">int div(int a, int b) { return a / b; }</SPAN>
+<SPAN LANG="en-US">int mod(int a, int b) { return a % b; }</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.1.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">四則演算する関数群
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">calc4.c</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">さて、上記のような</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">C</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">プログラムを作って実行してみましょう。</SPAN></P>
+<P LANG="zxx" CLASS="cjk" STYLE="margin-bottom: 0.5cm; border-top: none; border-bottom: 1.10pt double #808080; border-left: none; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0cm; padding-right: 0cm; font-weight: normal">
+入力</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$
+gcc -S calc4.c</SPAN></FONT></P>
+<P LANG="zxx" CLASS="cjk" STYLE="margin-bottom: 0.5cm; border-top: none; border-bottom: 1.10pt double #808080; border-left: none; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0cm; padding-right: 0cm; font-weight: normal">
+結果</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk">        <SPAN LANG="en-US"><SPAN LANG="en-US">.text</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _add</SPAN>
+<SPAN LANG="en-US">_add:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %esi, -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -8(%rbp), %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">addl    -4(%rbp), %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _sub</SPAN>
+<SPAN LANG="en-US">_sub:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %esi, -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -8(%rbp), %edx</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">subl    %edx, %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _mul</SPAN>
+<SPAN LANG="en-US">_mul:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %esi, -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">imull   -8(%rbp), %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _div</SPAN>
+<SPAN LANG="en-US">_div:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %esi, -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %edx</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edx, %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">sarl    $31, %edx</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">idivl   -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN>
+<SPAN LANG="en-US">.globl _mod</SPAN>
+<SPAN LANG="en-US">_mod:</SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">pushq   %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movq    %rsp, %rbp</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edi, -4(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %esi, -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    -4(%rbp), %edx</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edx, %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">sarl    $31, %edx</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">idivl   -8(%rbp)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">movl    %edx, %eax</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">leave</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">ret</SPAN></SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.2.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">四則演算する関数群
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">calc4.c</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">このように、足し算は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">addl,
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">引き算は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">subl,</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">かけ算は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">imull,
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">割り算は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">idivl</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を使って計算出来ます。ただ、割り算だけかなり特殊であることが分かると思います。説明不足だからわからないって？そりゃそうだな。じっくり読んで理解してくれ。割り算は、商と余りの２つの値を出す複雑な計算だからなのでしょうね。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%eax</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に商、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%edx</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に余りが入るようです。</SPAN></P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.3.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">計画を練る</SPAN></H3>
+<P CLASS="cjk" STYLE="font-weight: normal">ということで、次は、計算するぞ！</P>
+<P CLASS="cjk"><SPAN STYLE="font-weight: normal">といってもだな。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">1+2+3+4</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を計算したいとしてもですよ、</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$1,%eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">addl
+$2,%eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">addl
+$3,%eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">addl
+$4,%eax</SPAN></FONT></P>
+<P CLASS="cjk"><SPAN STYLE="font-weight: normal">と複数行に書かないと行けません。でもって、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">C</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">言語の変数の場合はメモリにとられるので、</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$1,-4(%rbp)</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$2,-8(%rbp)</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$3,-12(%rbp)</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">movl
+$4,-16(%rbp)</SPAN></FONT></P>
+<P CLASS="cjk" STYLE="font-weight: normal">とメモリに値を入れておいて、</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">mov
+-4(%rbp), %eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">add
+-8(%rbp), %eax</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">mov
+%eax, -20(%rbp)</SPAN></FONT></P>
+<P CLASS="cjk"><SPAN STYLE="font-weight: normal">計算し終わったら、メモリに保存してしまう。っていうことをやるのが最も原始的だけど、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">C</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">言語の計算モデルとぴったり合う仕様な気がします。</SPAN></P>
+<P CLASS="cjk" STYLE="font-weight: normal">ということで、そう作ってみようじゃありませんか。</P>
+<P CLASS="cjk"><SPAN STYLE="font-weight: normal">ということは、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">1+2+3+4</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">は、</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a=1</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">b=2</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">c=3</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">d=4</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">e=a+b</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">f=e+c</SPAN></FONT></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">g=f+d</SPAN></FONT></P>
+<P CLASS="cjk" STYLE="font-weight: normal">という式に展開して、実行するということを意味します。</P>
+<P CLASS="cjk" STYLE="font-weight: normal">うーん。これを実行するには、まず、</P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">1+2+3+4</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a=1;b=2;c=3;d=4;a+b+c+d</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に変換し、</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a=1;b=2;c=3;d=4;e=a+b;f=e+c;
+g=f+d</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に変換し、</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">i[0]=1;i[1]=2;i[2]=3;i[3]=d;i[4]=i[0]+i[1];i[5]=i[4]+i[2];i[6]=i[5]+i[3]</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に変換するようなプログラムを作ればいいってことになります。</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">i[0]=1;</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">(“movl”,
+“$1”, “-4(%rbp)”)</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">と書けるのかな？</SPAN></P>
+<P CLASS="cjk" STYLE="font-weight: normal">無駄は多いかもしれないけど、これが最も重要なコンパイラのバックエンドの仕事の手順を表しています。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.4.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">コード生成部の作成</SPAN></H3>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: normal">
+では、コード生成部を作って行きましょう。前の章で作った、出力するだけのコンパイラを修正して行きます。</P>
+<H4 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.4.1.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数ごとに分ける</SPAN></H4>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">test2.scala</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emit.scala</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">にコピーして、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">printInt</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数と</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">main</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数の出力を２つの関数に分けましょう。</SPAN></P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object emit {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def emitPrintInt() {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.cstring&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;LC0:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.ascii \&quot;%d\\12\\0\&quot;&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.text&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;_printInt:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    %edi, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    -4(%rbp), %esi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleaq    LC0(%rip), %rdi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    $0, %eax&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tcall    _printf&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def emitMain(a:Int) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl _main&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;_main:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tsubq    $16, %rsp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    $&quot;+a+&quot;, -4(%rbp)&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovl    -4(%rbp), %edi&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tcall    _printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.open(&quot;test3.s&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emitPrintInt()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emitMain(args(0).toInt)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exec(&quot;gcc -m64 -o test3 test3.s&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.3.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">アセンブラを出力するプログラム
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emit.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emitPrintInt</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">と</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emitMain</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に分けただけですが見通しが良くなりました。こうすると、なんとか、関数を出力する関数を作って汎用的に使いたくなりますね。</SPAN></P>
+<H4 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.4.2.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数をコンパイルする関数</SPAN></H4>
+<P CLASS="cjk" ALIGN=LEFT><SPAN STYLE="font-weight: normal">関数をコンパイルする関数</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emitFun</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を作って置き換えましょう。</SPAN></P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object emit {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def emitCString() {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.cstring&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;LC0:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.ascii \&quot;%d\\12\\0\&quot;&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\t.text&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def emitFun(name:String, body:List[Any]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl &quot;+name)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(name+&quot;:&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">body.foreach {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;subq&quot;, a, b) =&gt; asm(&quot;\tsubq &quot;+a+&quot;,&quot;+b)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a, b) =&gt; asm(&quot;\tmovl &quot;+a+&quot;,&quot;+b)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;leaq&quot;, a, b) =&gt; asm(&quot;\tleaq &quot;+a+&quot;,&quot;+b)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;call&quot;, a) =&gt; asm(&quot;\tcall &quot;+a)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.open(&quot;test3.s&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emitCString()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emitFun(&quot;_printInt&quot;,List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;subq&quot;, &quot;$16&quot;, &quot;%rsp&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;%edi&quot;, &quot;-4(%rbp)&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;-4(%rbp)&quot;, &quot;%esi&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;leaq&quot;, &quot;LC0(%rip)&quot;, &quot;%rdi&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;$0&quot;, &quot;%eax&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;, &quot;_printf&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emitFun(&quot;_main&quot;,List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;subq&quot;,&quot;$16&quot;, &quot;%rsp&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,&quot;$333&quot;, &quot;-4(%rbp)&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,&quot;-4(%rbp)&quot;, &quot;%edi&quot;),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;,&quot;_printInt&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.close()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exec(&quot;gcc -m64 -o test3 test3.s&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.4.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">アセンブラを出力するプログラム
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emit.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT><SPAN STYLE="font-weight: normal">第一引数に関数名、第二引数に命令のリストをつけて呼び出すようにしました。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">cstring</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">ディレクティブはとりあえず、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emitCString</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数で出力することにしました。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">foreach</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">で命令のリストをループして</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">asm</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">で出力しています。関数の最初と最後のお決まりの命令は固定で出力するように出来ました。</SPAN></P>
+<H4 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.4.3.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">データ構造から出力出来るようにする</SPAN></H4>
+<P CLASS="cjk" ALIGN=LEFT STYLE="font-weight: normal">次に、調子に乗って、データ構造から、出力するように変更してみましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object emit {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(filename:String, prgs:List[Any]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.open(filename)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">prgs.foreach {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case (name:String,body:List[Any]) =&gt;</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">body.foreach {</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;cstring&quot;, b:List[Any]) =&gt;</SPAN></SPAN>
+            <SPAN LANG="en-US"><SPAN LANG="en-US">b.foreach {</SPAN></SPAN>
+              <SPAN LANG="en-US"><SPAN LANG="en-US">case (name:String, b@&quot;.ascii&quot;, a) =&gt; asm(name+&quot;:&quot;); asm(b+&quot; &quot;+a)</SPAN></SPAN>
+            <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case _ =&gt;</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;.globl &quot;+name)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">asm(name+&quot;:&quot;)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tpushq   %rbp&quot;)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tmovq    %rsp, %rbp&quot;)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">body.foreach {</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;cstring&quot;, b:List[Any]) =&gt;</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;subq&quot;, a, b) =&gt; asm(&quot;\tsubq &quot;+a+&quot;,&quot;+b)</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a, b) =&gt; asm(&quot;\tmovl &quot;+a+&quot;,&quot;+b)</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;leaq&quot;, a, b) =&gt; asm(&quot;\tleaq &quot;+a+&quot;,&quot;+b)</SPAN></SPAN>
+          <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;call&quot;, a) =&gt; asm(&quot;\tcall &quot;+a)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tleave&quot;)</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">asm(&quot;\tret&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">asm.close()</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val prgs = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;_printInt&quot;,List(</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;cstring&quot;,List((&quot;LC0&quot;, &quot;.ascii&quot;, &quot;\&quot;%d\\12\\0\&quot;&quot;))),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;subq&quot;, &quot;$16&quot;, &quot;%rsp&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;%edi&quot;, &quot;-4(%rbp)&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;-4(%rbp)&quot;, &quot;%esi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;leaq&quot;, &quot;LC0(%rip)&quot;, &quot;%rdi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;$0&quot;, &quot;%eax&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;, &quot;_printf&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">)),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;_main&quot;,List(</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;subq&quot;,&quot;$16&quot;, &quot;%rsp&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,&quot;$333&quot;, &quot;-4(%rbp)&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,&quot;-4(%rbp)&quot;, &quot;%edi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;,&quot;_printInt&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emit(&quot;test3.s&quot;, prgs)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exec(&quot;gcc -m64 -o test3 test3.s&quot;) match {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case 0=&gt; exec(&quot;./test3&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.5.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">アセンブラを出力するプログラム
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emit.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT><SPAN STYLE="font-weight: normal">　</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">apply</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emit()</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">と書く事ができる特別な関数です。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">apply</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">は関数定義のリストを受け取って</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">foreach</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">で関数をループして処理しています。インストラクションコードのリストには</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">cstring</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">ディレクティブも含める事が出来るようにしました。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">foreach</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を２回呼び</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">cstring</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">ディレクティブは先に処理するようにしました。ここまで、作り上げれば、かなり後からも使えるはずです。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">main</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数は使い方の例として、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">emit</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数はそのまま外部からも使えます。便利になりました。命令を追加する必要があれば、１行追加すればよいのです。こんなんでいいの？っていうプログラムを何回か修正しているうちに、使えるプログラムになりましたよ。</SPAN></P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.5.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">変数名をアドレスに変換する関数の作成</SPAN></H3>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a=1;b=2;c=3;d=4;e=a+b;f=e+c;
+g=f+d</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に変換し、</SPAN></P>
+<P CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">i[0]=1;i[1]=2;i[2]=3;i[3]=d;i[4]=i[0]+i[1];i[5]=i[4]+i[2];i[6]=i[5]+i[3]</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に変換するようなプログラムを作ります。</SPAN></P>
+<P CLASS="cjk" STYLE="font-weight: normal">要するに変数名の個数を数えて、スタック領域を確保してあげれば良い訳です。</P>
+<P CLASS="cjk"><SPAN STYLE="font-weight: normal">変数名が何度出て来ても同じ変数なので、カウントしません。型が違う場合は、型のサイズの合計をとる必要がありますが、とりあえず今は</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">int</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">だけで良いので簡単なはずです。変数名が初めて出て来たのか、違うのかを調べるには、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Map(</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">連想配列</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">)</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を使います。変数名から対応アドレスを引く事が出来る表を作る訳です。</SPAN></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="font-weight: normal">次に変数名をアドレスに変換する関数を作りましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk">  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val prgs = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;_printInt&quot;,List(</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;cstring&quot;,List((&quot;LC0&quot;, &quot;.ascii&quot;, &quot;\&quot;%d\\12\\0\&quot;&quot;))),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;%edi&quot;, &quot;a&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;a&quot;, &quot;%esi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;leaq&quot;, &quot;LC0(%rip)&quot;, &quot;%rdi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;$0&quot;, &quot;%eax&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;, &quot;_printf&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">)),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;_main&quot;,List(</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,&quot;$333&quot;, &quot;a&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,&quot;a&quot;, &quot;%edi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;,&quot;_printInt&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val prgm = memAlloc(prgs)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emit(prgm)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exec(&quot;gcc -m64 -o test3 test3.s&quot;)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.6.
+</SPAN></FONT></SPAN></FONT>変数をメモリに割り当てる関数
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">memAlloc.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk"><SPAN STYLE="font-weight: normal">使い方はこんな感じです。メモリを確保する為の命令
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">(“subq”,
+“$n”, “%rsp”)</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">がな</SPAN><FONT COLOR="#000000"><SPAN STYLE="font-weight: normal">く、また、ローカル変数”</SPAN></FONT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">-4(%rbp)”</SPAN></FONT></FONT></SPAN></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: normal">は変数名
+“</SPAN></FONT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">a”
+</SPAN></FONT></FONT></SPAN></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: normal">に書き換えられています。アドレスを意識する事なくアセンブラのプログラムを組める言語を作ろうってわけです。</SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="font-weight: normal">さて、作って行きましょう。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object memAlloc {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var map:Map[Symbol,String] = null</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var counter = 0</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(a:List[Any]):List[Any] = a.map {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (name:String, body:List[Any]) =&gt;</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">map = Map()</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">counter = 0</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val body2 = body.map(f)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val localStackSize = ((-counter + 15)/16)*16</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(name, (&quot;subq&quot;, &quot;$&quot;+localStackSize, &quot;%rsp&quot;)::body2)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def address():String = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">counter -= 4</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">counter + &quot;(%rbp)&quot;</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def f(a:Any):Any = a match {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;cstring&quot;, b:List[Any]) =&gt; a</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;subq&quot;, a, b) =&gt; (&quot;subq&quot;, f2(a), f2(b))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a, b) =&gt; (&quot;movl&quot;, f2(a), f2(b))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;leaq&quot;, _, _) =&gt; a</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;call&quot;, _) =&gt; a</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def f2(a:Any):Any = a match {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:String =&gt; a</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:Symbol if(map.contains(a)) =&gt; map(a)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:Symbol =&gt; val addr = address(); map = map + (a -&gt; addr); addr</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val prgs = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;_printInt&quot;,List(</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;cstring&quot;,List((&quot;LC0&quot;, &quot;.ascii&quot;, &quot;\&quot;%d\\12\\0\&quot;&quot;))),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;%edi&quot;, 'a),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, 'a, &quot;%esi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;leaq&quot;, &quot;LC0(%rip)&quot;, &quot;%rdi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;$0&quot;, &quot;%eax&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;, &quot;_printf&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">)),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;_main&quot;,List(</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, &quot;$333&quot;, 'a),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;, 'a, &quot;%edi&quot;),</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;call&quot;, &quot;_printInt&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val prgm = memAlloc(prgs)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(&quot;prgm=&quot;+prgm)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">emit(&quot;test3.s&quot;,prgm)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exec(&quot;gcc -m64 -o test3 test3.s&quot;) match {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case 0=&gt; exec(&quot;./test3&quot;)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case _=&gt;</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.7.
+</SPAN></FONT></SPAN></FONT>変数をメモリに割り当てる関数
+<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">memAlloc.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT><SPAN STYLE="font-weight: normal">まず、マップとカウンタを用意します。関数でループして、関数ごとに</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">map</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">と</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">counter</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">をリセットします。関数内部を検索する関数</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">f</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">をすべてのインストラクションについて呼び出し変換します。変換が終わったら、ローカルのスタックサイズを求めます。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">16</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">バイト区切りでスタックサイズは決める必要があるので、</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">16</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">で割り切れる値を求めます。スタックサイズを追加したインストラクションのリストを返せば完了です。</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">f</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">関数は各インストラクションとパラメータについてチェックします。もしも、文字列で</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">$</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">も</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">%</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">もついていないものは変数として扱います。</SPAN></P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.6.
+ID</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">生成関数の作成</SPAN></H3>
+<P CLASS="cjk" ALIGN=LEFT><SPAN STYLE="font-weight: normal">次に新しい</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">ID</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を作る関数を作りましょう。</SPAN></P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object genid {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var counter = 0</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(name:String):String = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">counter += 1</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">name + counter</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(genid(&quot;test&quot;))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(genid(&quot;test&quot;))</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.8.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">新しい識別子を作る関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">genid.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="font-weight: normal">とても簡単ですが、名前を渡すと数値がついて返ってきます。数値は毎回更新されるので、ユニークな単一の名前が返せます。なぜこんな関数を作ったのかというと、次で使うからです。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.7.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">命令を平たくする関数の作成</SPAN></H3>
+<P CLASS="cjk" ALIGN=LEFT STYLE="font-weight: normal">変数を使う事が出来るアセンブラは出来ました。次は複雑な式をアセンブラでも扱えるように展開するプログラムを作ります。</P>
+<P CLASS="cjk" STYLE="margin-bottom: 0cm"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">g=a+b+c+d</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">を</SPAN></P>
+<P CLASS="cjk" ALIGN=LEFT><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">e=a+b;f=e+c;
+g=f+d</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">に変換するプログラムを作る訳です。</SPAN></P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object expand {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val s = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,1,'a),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,2,'b),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,3,'c),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,4,'d),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,(&quot;addl&quot;,(&quot;addl&quot;,(&quot;addl&quot;, 'a, 'b),'c), 'd), 'g)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val e = expand(s)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(e)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.9.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">命令を平たくする関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">expand.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT><SPAN STYLE="font-weight: normal">こんな感じで、実行してうまく行けば</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><SPAN STYLE="font-weight: normal">OK</SPAN></SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">です。</SPAN></P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object expand {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val s = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,1,'a),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,2,'b),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,3,'c),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,4,'d),</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,(&quot;addl&quot;,(&quot;addl&quot;,(&quot;addl&quot;, 'a, 'b),'c), 'd), 'g)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val e = expand(s)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(e)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var l:List[Any]=null</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(e:List[Any]):Any = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">l = List[Any]()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">e.foreach(f)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">l</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def f(a:Any):Any = a match {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a:Int, b) =&gt; l = l:::List((&quot;movl&quot;, a, b)); b</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a, b) =&gt;</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val a1 = f(a)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">l = l:::List((&quot;movl&quot;, a1, b))</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">b</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;addl&quot;, a, b) =&gt;</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val a1 = f(a)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val b1 = f(b)</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val id = Symbol(genid(&quot;id&quot;))</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">l = l:::List((&quot;add&quot;, a1, b1, id))</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">id</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:Symbol =&gt; a</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.10.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">新しい識別子を作る関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">genid.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm">　<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">apply</SPAN></FONT></SPAN></FONT>では、リスト<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">l</SPAN></FONT></SPAN></FONT>を初期化して、渡されたリストを<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">foreach</SPAN></FONT></SPAN></FONT>でループで処理します。処理の本体は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">f</SPAN></FONT></SPAN></FONT>関数です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">f</SPAN></FONT></SPAN></FONT>関数は足し算等の結果を返す関数で、足し算だった場合は、パラメータが更なる式である可能性があるので、再帰的に<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">f</SPAN></FONT></SPAN></FONT>関数を呼び出して、展開しています。展開の結果はリスト<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">l</SPAN></FONT></SPAN></FONT>に追加していくことで、行っています。</P>
+<H3 CLASS="cjk"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.8.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">定数を展開する関数の作成</SPAN></H3>
+<P CLASS="cjk" ALIGN=LEFT STYLE="font-weight: normal">次に定数をあらかじめ変数に代入する関数を作ります。展開するときに値が常に変数であるとした方が簡単に出来る為に、あらかじめ定数は変数に代入して使うことにしています。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object constFold {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val st = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,(&quot;addl&quot;,(&quot;addl&quot;,(&quot;addl&quot;, 1, 2), 3), 4), 'g)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val c = constFold(st)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(c)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.11.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">新しい識別子を作る関数のメイン関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">constFold.scala</SPAN></FONT></SPAN></FONT></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+			<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object constFold {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val st = List(</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">(&quot;movl&quot;,(&quot;addl&quot;,(&quot;addl&quot;,(&quot;addl&quot;, 1, 2), 3), 4), 'g)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val c = constFold(st)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(c)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var l:List[Any] = null</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(e:List[Any]):List[Any] = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">l = List[Any]()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val l2 = e.map(f)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">l.foldLeft(l2){case (l,e) =&gt; e::l}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def f(e:Any):Any = e match {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a:Int, b:Symbol) =&gt; (&quot;movl&quot;, a, b)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;movl&quot;, a, b) =&gt; (&quot;movl&quot;, f(a), f(b))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (&quot;addl&quot;, a, b) =&gt; (&quot;addl&quot;, f(a), f(b))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:Int =&gt;</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val id = Symbol(genid(&quot;c_&quot;))</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">l = (&quot;movl&quot;, a, id)::l</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">id</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:String =&gt; a</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:Symbol =&gt; a</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+		</TD>
+	</TR>
+</TABLE>
+<P CLASS="cjk" ALIGN=CENTER><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.12.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">新しい識別子を作る関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">constFold.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" STYLE="font-weight: normal">次は構文木から抽象構文木へ変換します。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object st2ast {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val st = (((1,&quot;+&quot;,2),&quot;+&quot;,3),&quot;+&quot;,4)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val ast = st2ast(st)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(ast)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(e:Any):Any = e match {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case (a,&quot;+&quot;,b) =&gt; (&quot;add&quot;, st2ast(a), st2ast(b))</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case a:Int =&gt; a</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.13.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">新しい識別子を作る関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">st2ast.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" STYLE="font-weight: normal">次はパーサを作ります。</P>
+<CENTER>
+	<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0>
+		<COL WIDTH=256*>
+		<TR>
+			<TD WIDTH=100% VALIGN=TOP BGCOLOR="#0000ff">
+				<PRE CLASS="cjk"><SPAN LANG="en-US">package ddc</SPAN>
+<SPAN LANG="en-US">object parse {</SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def main(args:Array[String]) {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val src = &quot;1+2+3+4&quot;</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val st = parse(src)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">println(st)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">val numReg = &quot;&quot;&quot;(?s)^[\r\n\t ]*([0-9]+)(.*)$&quot;&quot;&quot;.r</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">val opReg = &quot;&quot;&quot;(?s)^[\r\n\t ]*([+]|)(.*)$&quot;&quot;&quot;.r</SPAN></SPAN>
+
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var src = &quot;&quot;</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var token:Any = &quot;&quot;</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">var ptoken:Any = &quot;&quot;</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def lex():Any = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">ptoken = token</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">src = src match {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case numReg(a,b) =&gt; token = a.toInt; b</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">case opReg(a,b) =&gt; token = a; b</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">ptoken</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def apply(str:String):Any = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">src = str</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">token = &quot;&quot;</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">ptoken = &quot;&quot;</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">lex()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">exp(0)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def ins(a:Any):Any = a match {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case &quot;+&quot; =&gt; (10,&quot;l&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case &quot;*&quot; =&gt; (20,&quot;l&quot;)</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">case _ =&gt; -1</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">def exp(p:Int):Any = {</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">val t=lex()</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">def in(t:Any):Any = {</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">val op = token</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">ins(op) match {</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">case (np:Int,&quot;l&quot;) if (np &gt; p) =&gt; lex(); in(t, op, exp(np))</SPAN></SPAN>
+        <SPAN LANG="en-US"><SPAN LANG="en-US">case _ =&gt; t</SPAN></SPAN>
+      <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+    <SPAN LANG="en-US"><SPAN LANG="en-US">in(t)</SPAN></SPAN>
+  <SPAN LANG="en-US"><SPAN LANG="en-US">}</SPAN></SPAN>
+<SPAN LANG="en-US">}</SPAN></PRE>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P CLASS="cjk" ALIGN=CENTER STYLE="margin-bottom: 0cm"><SPAN STYLE="font-weight: normal">ソースコード
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">6.14.
+</SPAN></FONT></SPAN></FONT><SPAN STYLE="font-weight: normal">新しい識別子を作る関数
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">parse.scala</SPAN></FONT></SPAN></FONT></P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm">パーサは文字列を受け取って、構文木を返します。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">lex</SPAN></FONT></SPAN></FONT>が字句解析を行う関数です。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">apply</SPAN></FONT></SPAN></FONT>がパーサ本体。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">Exp</SPAN></FONT></SPAN></FONT>が式をパースする関数です。</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: normal">
+ということで、見事、式をコンパイルできるプログラムの全体像が出来上がりました。しかし、</P>
+<P CLASS="cjk" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: normal">
+作っていたのは常にコンパイラでした。そして、そのコンパイラはどんどん高級になって行きました。最後は、ソースコードからプログラムが出来るようになってしまいました。本書の狙いはまさにここにありました。今までの書籍と違って、一から順番に、楽しく、バッグエンドを作る事が出来たのではないかと思います。最後のパーサまで来ると、ほんとに作るの？疲れたよって、思ったかもしれません。だから、頭を切り替える為に、あえて、全くバッグエンドの事は忘れて構文木を作りました。そして、最後につなぎ込むプログラムを作って動かしました。</P>
+<H2 CLASS="cjk"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">7.
+</SPAN></FONT></SPAN></FONT>関数をコンパイル出来るようにしよう</H2>
+<P CLASS="cjk">　次は関数をコンパイル出来るようにしてみましょう。関数をコンパイルする場合の問題はいろいろあります。</P>
+<H2 CLASS="cjk"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US"><FONT FACE="Arial, sans-serif"><SPAN LANG="en-US">8.
+if</SPAN></FONT></SPAN></FONT>文を実装しよう</H2>
+<P CLASS="cjk">　次は<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">if</SPAN></FONT></SPAN></FONT>文を作れるようにしてみましょう。<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">if</SPAN></FONT></SPAN></FONT>が実装出来れば、<FONT FACE="Times New Roman, serif"><SPAN LANG="en-US"><FONT FACE="Times New Roman, serif"><SPAN LANG="en-US">fibonatti</SPAN></FONT></SPAN></FONT>関数が作れるようになります。</P>
+</BODY>
+</HTML>
